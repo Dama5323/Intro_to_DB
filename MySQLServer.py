@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MySQLServer.py - Script to create alx_book_store database securely
+MySQLServer.py - Secure database creation script with proper error handling
 """
 
 import os
@@ -9,12 +9,13 @@ from mysql.connector import Error
 from dotenv import load_dotenv
 
 def create_database():
-    """Create the alx_book_store database if it doesn't exist"""
+    """Create the alx_book_store database with proper error handling"""
+    connection = None
     try:
         # Load environment variables
         load_dotenv()
         
-        # Connect to MySQL server without specifying a database
+        # Connect to MySQL server
         connection = mysql.connector.connect(
             host=os.getenv('DB_HOST'),
             user=os.getenv('DB_USER'),
@@ -24,19 +25,28 @@ def create_database():
         if connection.is_connected():
             cursor = connection.cursor()
             
-            # Create database if not exists (without using SHOW or SELECT)
+            # Create database if not exists
             cursor.execute("CREATE DATABASE IF NOT EXISTS alx_book_store")
             connection.commit()
             
             print("Database 'alx_book_store' created successfully!")
             
-    except Error as e:
-        print(f"Error while connecting to MySQL: {e}")
+    except Error as e:  # This catches mysql.connector.Error specifically
+        print(f"\n[!] MySQL Error: {e}")
+        print("Database creation failed. Check:")
+        print("- MySQL service status")
+        print("- Connection credentials in .env")
+        print("- Network connectivity\n")
+        
+    except Exception as e:  # Catches other unexpected errors
+        print(f"\n[!] Unexpected error: {e}")
+        
     finally:
-        # Close the connection if it was established
-        if 'connection' in locals() and connection.is_connected():
+        # Proper resource cleanup
+        if connection and connection.is_connected():
             cursor.close()
             connection.close()
+            print("MySQL connection closed")
 
 if __name__ == "__main__":
     create_database()
