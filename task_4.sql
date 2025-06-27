@@ -1,4 +1,4 @@
--- Full description of books table without using DESCRIBE/EXPLAIN/ANALYZE
+--writing a script that prints the full description of the table books from the database
 SELECT 
     TABLE_NAME,
     COLUMN_NAME,
@@ -12,3 +12,4 @@ FROM
 WHERE 
     TABLE_SCHEMA = 'alx_book_store'
     AND TABLE_NAME = 'Books';
+
