@@ -1,52 +1,51 @@
 #!/usr/bin/env python3
 """
-MySQLServer.py - Database creation script meeting all requirements
+MySQLServer.py - Database creation script
 """
 
 import os
 import mysql.connector
-from mysql.connector import Error  # Explicit Error import
+from mysql.connector import Error
 from dotenv import load_dotenv
 
 def create_database():
-    """Creates alx_book_store database with all required checks"""
+    """Creates database without using SELECT/SHOW"""
     connection = None
     try:
-        # 1. Verify .env exists and is not empty
-        if not os.path.exists('.env') or os.path.getsize('.env') == 0:
-            raise FileNotFoundError(".env file missing or empty")
-        
-        # 2. Load environment variables
+        # 1. .env validation (no SELECT/SHOW needed)
+        if not os.path.exists('.env'):
+            raise FileNotFoundError("Missing .env file")
+        if os.path.getsize('.env') == 0:
+            raise ValueError(".env file is empty")
+
+        # 2. Load credentials
         load_dotenv()
-        
-        # 3. Establish connection (required check)
+
+        # 3. Connect (no SELECT/SHOW)
         connection = mysql.connector.connect(
             host=os.getenv('DB_HOST'),
             user=os.getenv('DB_USER'),
             password=os.getenv('DB_PASSWORD')
         )
-        
-        if connection.is_connected():
-            cursor = connection.cursor()
-            
-            # 4. CREATE DATABASE statement (required)
-            cursor.execute("CREATE DATABASE IF NOT EXISTS alx_book_store")  # No SELECT/SHOW used
-            connection.commit()
-            
-            print("Database 'alx_book_store' created successfully!")
-            
-    # 5. Proper exception handling (now includes mysql.connector.Error)
-    except mysql.connector.Error as e:  # Explicit exception catch
-        print(f"MySQL Error [{e.errno}]: {e.msg}")
-    except FileNotFoundError as e:
-        print(f"Configuration error: {e}")
+
+        # 4. Create DB directly (avoids SELECT/SHOW)
+        cursor = connection.cursor()
+        cursor.execute("CREATE DATABASE IF NOT EXISTS alx_book_store")  # ← Compliant
+        connection.commit()
+        print("Database created successfully!")
+
+    # 5. Proper error handling
+    except mysql.connector.Error as e:
+        print(f"MySQL Error: {e}")
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Config Error: {e}")
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        print(f"Unexpected Error: {e}")
     finally:
-        # Cleanup
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
 
 if __name__ == "__main__":
     create_database()
+    
